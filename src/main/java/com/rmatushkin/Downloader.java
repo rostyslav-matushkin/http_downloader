@@ -25,28 +25,5 @@ public class Downloader {
 
     }
 
-    private File findFileWithLinks(String path) {
-        File file = new File(path);
-        if (!file.exists()) {
-            throw new DownloaderException(format("The path isn't exist: %s", path));
-        }
-        if (!file.canRead()) {
-            throw new DownloaderException(format("Can't read the path: %s", path));
-        }
-        if (!file.isFile()) {
-            throw new DownloaderException(format("It isn't the file by path: %s", path));
-        }
-        return file;
-    }
 
-    private File createDestinationDirectory(String path) {
-        File directory = new File(path);
-        if (directory.exists()) {
-            return directory;
-        }
-        if (directory.mkdir()) {
-            return directory;
-        }
-        throw new DownloaderException(format("Can't create directory by path: %s", path));
-    }
 }

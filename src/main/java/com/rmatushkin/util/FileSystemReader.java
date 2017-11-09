@@ -8,7 +8,7 @@ import static java.lang.String.format;
 
 public class FileSystemReader {
 
-    private static File findFile(String path) {
+    public static File findFile(String path) {
         File file = new File(path);
         if (!file.exists()) {
             throw new FileSystemReaderException(format("The path isn't exist: %s", path));
@@ -22,7 +22,7 @@ public class FileSystemReader {
         return file;
     }
 
-    private static File createDirectory(String path) {
+    public static File createDirectory(String path) {
         File directory = new File(path);
         if (directory.exists()) {
             return directory;

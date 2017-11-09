@@ -1,4 +1,4 @@
-package com.rmatushkin;
+package com.rmatushkin.util;
 
 import com.rmatushkin.exception.ProgramArgumentParserException;
 import org.apache.commons.cli.CommandLine;
@@ -11,20 +11,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ProgramArgumentParser {
-    private static final String[] PARAMETERS = {"n", "l", "f", "o"};
 
-    public static Map<String, String> parse(String[] args) {
+    public static Map<String, String> parse(String[] args, String[] parameters) {
         Map<String, String> valuesByParameters = new HashMap<>();
-        CommandLine commandLine = buildCommandLine(args);
-        for (String parameter : PARAMETERS) {
+        CommandLine commandLine = buildCommandLine(args, parameters);
+        for (String parameter : parameters) {
             String optionValue = commandLine.getOptionValue(parameter);
             valuesByParameters.put(parameter, optionValue);
         }
         return valuesByParameters;
     }
 
-    private static CommandLine buildCommandLine(String[] args) {
-        Options options = buildOptions();
+    private static CommandLine buildCommandLine(String[] args, String[] parameters) {
+        Options options = buildOptions(parameters);
         CommandLineParser commandLineParser = new DefaultParser();
         try {
             return commandLineParser.parse(options, args);
@@ -33,12 +32,12 @@ public class ProgramArgumentParser {
         }
     }
 
-    private static Options buildOptions() {
+    private static Options buildOptions(String[] parameters) {
         Options options = new Options();
-        options.addOption(PARAMETERS[0], true, "parameter1"); //TODO: rename description
-        options.addOption(PARAMETERS[1], true, "parameter2"); //TODO: rename description
-        options.addOption(PARAMETERS[2], true, "parameter3"); //TODO: rename description
-        options.addOption(PARAMETERS[3], true, "parameter4"); //TODO: rename description
+        options.addOption(parameters[0], true, "p1");
+        options.addOption(parameters[1], true, "p2");
+        options.addOption(parameters[2], true, "p3");
+        options.addOption(parameters[3], true, "p4");
         return options;
     }
 }

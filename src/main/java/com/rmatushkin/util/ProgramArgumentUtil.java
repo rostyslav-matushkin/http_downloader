@@ -10,7 +10,7 @@ import org.apache.commons.cli.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProgramArgumentParser {
+public class ProgramArgumentUtil {
 
     public static Map<String, String> parse(String[] args, String[] parameters) {
         Map<String, String> valuesByParameters = new HashMap<>();

@@ -6,7 +6,7 @@ import java.io.File;
 
 import static java.lang.String.format;
 
-public class FileSystemReader {
+public class FileSystemUtil {
 
     public static File findFile(String path) {
         File file = new File(path);
@@ -32,4 +32,6 @@ public class FileSystemReader {
         }
         throw new FileSystemReaderException(format("Can't create the directory by path: %s", path));
     }
+
+
 }

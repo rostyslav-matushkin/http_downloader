@@ -1,5 +1,6 @@
 package com.rmatushkin;
 
+import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.DownloaderException;
 import com.rmatushkin.http.HttpClient;
 
@@ -15,58 +16,98 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-import static com.rmatushkin.util.FileSystemReader.createDirectory;
-import static com.rmatushkin.util.FileSystemReader.findFile;
-import static com.rmatushkin.util.ProgramArgumentParser.parse;
+import static com.rmatushkin.constraint.RegexPattern.URL_PATTERN;
+import static com.rmatushkin.util.FileSystemUtil.createDirectory;
+import static com.rmatushkin.util.FileSystemUtil.findFile;
+import static com.rmatushkin.util.ProgramArgumentUtil.parse;
+import static com.rmatushkin.util.StringUtil.removeExcessWhitespaces;
+import static com.rmatushkin.util.StringUtil.removeUtf8Bom;
 import static java.lang.Integer.parseInt;
+import static java.lang.String.format;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class Downloader {
     private static final String[] PARAMETERS = {"n", "l", "f", "o"};
-    public static final String UTF8_BOM = "\uFEFF";
     private String[] args;
+    private Map<String, String> valuesByParameters;
+    private int threadsQuantity;
+    private Map<String, String> fileNamesByUrls;
+    private File destinationDirectory;
 
     public Downloader(String[] args) {
         this.args = args;
+        init();
     }
 
     public void start() {
-        Map<String, String> valuesByParameters = parse(args, PARAMETERS);
-        int threadsQuantity = parseInt(valuesByParameters.get(PARAMETERS[0]));
-        File foundFile = findFile(valuesByParameters.get(PARAMETERS[2]));
-        File destinationDirectory = createDirectory(valuesByParameters.get(PARAMETERS[3]));
-        Map<String, String> fileNamesByUrls = fetchFileNamesByUrls(foundFile);
-        downloadFiles(fileNamesByUrls, destinationDirectory, threadsQuantity);
+
     }
 
-    private Map<String, String> fetchFileNamesByUrls(File file) {
-        Map<String, String> fileNamesByLinks = new HashMap<>();
+    private void init() {
+        valuesByParameters = parse(args, PARAMETERS);
+        String threadsQuantity = valuesByParameters.get(PARAMETERS[0]);
+        if (threadsQuantity != null) {
+            this.threadsQuantity = parseInt(valuesByParameters.get(PARAMETERS[0]));
+        }
+        String fileWithUrlsPath = valuesByParameters.get(PARAMETERS[2]);
+        if (fileWithUrlsPath == null) {
+            throw new DownloaderException(format("Parameter %s can't be null!", "-" + PARAMETERS[2]));
+        }
+        File fileWithUrls = findFile(fileWithUrlsPath);
+        fileNamesByUrls = getFileNamesByUrls(fileWithUrls);
+        String destinationDirectoryPath = valuesByParameters.get(PARAMETERS[3]);
+        if (destinationDirectoryPath == null) {
+            throw new DownloaderException(format("Parameter %s can't be null!", "-" + PARAMETERS[3]));
+        }
+        destinationDirectory = createDirectory(destinationDirectoryPath);
+    }
 
+    private Map<String, String> getFileNamesByUrls(File file) {
+        Map<String, String> fileNamesByUrls = new HashMap<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             while (bufferedReader.ready()) {
-                String[] separatedLine = bufferedReader.readLine().replaceAll(UTF8_BOM, "").split(" ");
-                fileNamesByLinks.put(separatedLine[1], separatedLine[0]);
+                String readLine = bufferedReader.readLine();
+                String processedLine = removeExcessWhitespaces(removeUtf8Bom(readLine));
+                String[] subLines = processedLine.split(" ");
+                String url = subLines[0];
+                if (!url.matches(URL_PATTERN)) {
+                    throw new DownloaderException("The line '%s' isn't URL!");
+                }
+                String fileName = subLines[1];
+                fileNamesByUrls.put(fileName, url);
             }
-            return fileNamesByLinks;
+            return fileNamesByUrls;
         } catch (IOException e) {
             throw new DownloaderException(e.getMessage());
         }
     }
 
-    private void downloadFiles(Map<String, String> fileNamesByLinks, File destinationDirectory, int threadsQuantity) {
-        HttpClient httpClient = new HttpClient();
+    private void downloadFiles() {
         List<Callable<Object>> tasks = new ArrayList<>();
-        for (Entry<String, String> pair : fileNamesByLinks.entrySet()) {
-            String fileName = pair.getKey();
-            String url = pair.getValue();
-            String destinationFilePath = destinationDirectory.getPath() + "\\" + fileName;
+        HttpClient httpClient = new HttpClient();
+        String limitValue = valuesByParameters.get(PARAMETERS[1]);
+        if (limitValue != null) {
+
+        }
+        int limit = 0;
+        for (Entry<String, String> pair : fileNamesByUrls.entrySet()) {
             tasks.add(() -> {
-                httpClient.downloadByUrl(url, destinationFilePath);
+                String url = pair.getKey();
+                String fileName = pair.getValue();
+                httpClient.enableLimit();
                 return null;
             });
         }
-        ExecutorService executorService = newFixedThreadPool(threadsQuantity);
+        runTasks(tasks);
+    }
+
+
+
+    private <T> void runTasks(List<Callable<T>> tasks) {
+        ExecutorService executorService = newWorkStealingPool();
+        if (threadsQuantity != 0)
+        executorService = newFixedThreadPool(threadsQuantity);
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {

@@ -32,6 +32,4 @@ public class FileSystemUtil {
         }
         throw new FileSystemReaderException(format("Can't create the directory by path: %s", path));
     }
-
-
 }

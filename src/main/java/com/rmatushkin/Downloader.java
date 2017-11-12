@@ -1,8 +1,8 @@
 package com.rmatushkin;
 
-import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.DownloaderException;
 import com.rmatushkin.http.HttpClient;
+import com.rmatushkin.http.HttpClient.Limit;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 import static com.rmatushkin.constraint.RegexPattern.URL_PATTERN;
+import static com.rmatushkin.http.HttpClient.Limit.parseLimit;
 import static com.rmatushkin.util.FileSystemUtil.createDirectory;
 import static com.rmatushkin.util.FileSystemUtil.findFile;
 import static com.rmatushkin.util.ProgramArgumentUtil.parse;
@@ -41,7 +42,39 @@ public class Downloader {
     }
 
     public void start() {
+        downloadFiles();
+    }
 
+    private void downloadFiles() {
+        List<Callable<Object>> tasks = new ArrayList<>();
+        HttpClient httpClient = new HttpClient();
+        String limitParameter = valuesByParameters.get(PARAMETERS[1]);
+        if (limitParameter != null) {
+            Limit limit = parseLimit(limitParameter);
+            httpClient.enableLimit(limit);
+        }
+        for (Entry<String, String> pair : fileNamesByUrls.entrySet()) {
+            tasks.add(() -> {
+                String url = pair.getKey();
+                String fileName = pair.getValue();
+                String destinationFilePath = destinationDirectory.getPath() + "\\" + fileName;
+                httpClient.download(url, destinationFilePath);
+                return null;
+            });
+        }
+        runTasks(tasks);
+    }
+
+    private <T> void runTasks(List<Callable<T>> tasks) {
+        ExecutorService executorService = newWorkStealingPool();
+        if (threadsQuantity != 0)
+        executorService = newFixedThreadPool(threadsQuantity);
+        try {
+            executorService.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            throw new DownloaderException(e.getMessage());
+        }
+        executorService.shutdown();
     }
 
     private void init() {
@@ -81,38 +114,5 @@ public class Downloader {
         } catch (IOException e) {
             throw new DownloaderException(e.getMessage());
         }
-    }
-
-    private void downloadFiles() {
-        List<Callable<Object>> tasks = new ArrayList<>();
-        HttpClient httpClient = new HttpClient();
-        String limitValue = valuesByParameters.get(PARAMETERS[1]);
-        if (limitValue != null) {
-
-        }
-        int limit = 0;
-        for (Entry<String, String> pair : fileNamesByUrls.entrySet()) {
-            tasks.add(() -> {
-                String url = pair.getKey();
-                String fileName = pair.getValue();
-                httpClient.enableLimit();
-                return null;
-            });
-        }
-        runTasks(tasks);
-    }
-
-
-
-    private <T> void runTasks(List<Callable<T>> tasks) {
-        ExecutorService executorService = newWorkStealingPool();
-        if (threadsQuantity != 0)
-        executorService = newFixedThreadPool(threadsQuantity);
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            throw new DownloaderException(e.getMessage());
-        }
-        executorService.shutdown();
     }
 }

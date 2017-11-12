@@ -105,7 +105,7 @@ public class Downloader {
                 String[] subLines = processedLine.split(" ");
                 String url = subLines[0];
                 if (!url.matches(URL_PATTERN)) {
-                    throw new DownloaderException("The line '%s' isn't URL!");
+                    throw new DownloaderException(format("The line '%s' isn't URL!", url));
                 }
                 String fileName = subLines[1];
                 fileNamesByUrls.put(fileName, url);

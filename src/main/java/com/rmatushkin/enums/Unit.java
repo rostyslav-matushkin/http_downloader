@@ -2,7 +2,7 @@ package com.rmatushkin.enums;
 
 public enum Unit {
     KILOBYTE(1024, "k"),
-    MEGABYTE(1048576, "m");
+    MEGABYTE(1_048_576, "m");
 
     private int bytes;
     private String letter;

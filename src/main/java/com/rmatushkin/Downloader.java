@@ -55,8 +55,8 @@ public class Downloader {
         }
         for (Entry<String, String> pair : fileNamesByUrls.entrySet()) {
             tasks.add(() -> {
-                String url = pair.getKey();
-                String fileName = pair.getValue();
+                String fileName = pair.getKey();
+                String url = pair.getValue();
                 String destinationFilePath = destinationDirectory.getPath() + "\\" + fileName;
                 httpClient.download(url, destinationFilePath);
                 return null;

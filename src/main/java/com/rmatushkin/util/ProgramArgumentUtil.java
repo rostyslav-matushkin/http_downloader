@@ -28,6 +28,7 @@ public class ProgramArgumentUtil {
         try {
             return commandLineParser.parse(options, args);
         } catch (ParseException e) {
+            System.err.println(e.getMessage());
             throw new ProgramArgumentParserException(e.getMessage());
         }
     }

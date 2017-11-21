@@ -72,6 +72,7 @@ public class Downloader {
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
+            System.err.println(e.getMessage());
             throw new DownloaderException(e.getMessage());
         }
         executorService.shutdown();
@@ -112,6 +113,7 @@ public class Downloader {
             }
             return fileNamesByUrls;
         } catch (IOException e) {
+            System.err.println(e.getMessage());
             throw new DownloaderException(e.getMessage());
         }
     }

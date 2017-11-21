@@ -34,6 +34,7 @@ public class HttpClient {
                 fileOutputStream.write(buffer, 0, count);
             }
         } catch (IOException e) {
+            System.err.println(e.getMessage());
             throw new HttpClientException(e.getMessage());
         }
     }

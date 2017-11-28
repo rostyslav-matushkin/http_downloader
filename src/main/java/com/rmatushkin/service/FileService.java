@@ -4,7 +4,6 @@ import com.rmatushkin.exception.FileException;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -13,6 +12,7 @@ import java.util.Map;
 import static com.rmatushkin.util.StringUtil.removeExcessWhitespaces;
 import static com.rmatushkin.util.StringUtil.removeUtf8Bom;
 import static java.lang.String.format;
+import static java.time.LocalDateTime.now;
 
 public class FileService {
 
@@ -22,10 +22,14 @@ public class FileService {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             while (bufferedReader.ready()) {
                 String readLine = removeUtf8Bom(removeExcessWhitespaces(bufferedReader.readLine()));
-                String[] separatedLine = readLine.split(" ");
-                String url = separatedLine[0];
-                String name = separatedLine[1];
-                namesToUrls.put(name, url);
+                if (readLine.contains(" ")) {
+                    String[] separatedLine = readLine.split(" ");
+                    String url = separatedLine[0];
+                    String name = separatedLine[1];
+                    namesToUrls.put(name, url);
+                }
+                String name = now().toString();
+                namesToUrls.put(name, readLine);
             }
             return namesToUrls;
         } catch (IOException e) {

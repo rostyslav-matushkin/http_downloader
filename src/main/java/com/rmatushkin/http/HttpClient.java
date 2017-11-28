@@ -1,13 +1,10 @@
 package com.rmatushkin.http;
 
+import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.enums.Unit;
-import com.rmatushkin.exception.HttpClientException;
 import com.rmatushkin.exception.LimitParseException;
 
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
+import java.util.List;
 
 import static com.rmatushkin.constraint.RegexPattern.LIMIT_REGEX;
 import static com.rmatushkin.enums.Unit.KILOBYTE;
@@ -16,6 +13,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
 public class HttpClient {
+    private static final int BUFFER_SIZE = 4096;
     private Limit limit;
     private boolean enabledLimit;
 
@@ -26,31 +24,20 @@ public class HttpClient {
         this.limit = limit;
     }
 
-    public void download(String url, String destinationFilePath) {
+    public void download(List<SingleFile> singleFiles) {
         if (enabledLimit) {
-            downloadWithLimit(url, destinationFilePath);
+            downloadWithLimit(singleFiles);
         } else {
-            downloadWithotLimit(url, destinationFilePath);
+            downloadWithoutLimit(singleFiles);
         }
     }
 
-    private void downloadWithLimit(String url, String destinationFilePath) {
+    private void downloadWithLimit(List<SingleFile> singleFiles) {
 
     }
 
-    private void downloadWithotLimit(String url, String destinationFilePath) {
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new URL(url).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath)) {
-            int length = limit.getValue() * limit.getUnit().getBytes();
-            byte[] buffer = new byte[length];
-            int count;
-            while ((count = bufferedInputStream.read(buffer, 0, length)) != -1) {
-                fileOutputStream.write(buffer, 0, count);
-            }
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            throw new HttpClientException(e.getMessage());
-        }
+    private void downloadWithoutLimit(List<SingleFile> singleFiles) {
+
     }
 
     public void enableLimit() {

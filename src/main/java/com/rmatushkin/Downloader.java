@@ -2,6 +2,7 @@ package com.rmatushkin;
 
 import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.exception.DownloaderException;
+import com.rmatushkin.http.HttpClient;
 import com.rmatushkin.service.FileService;
 import com.rmatushkin.service.ProgramArgumentService;
 
@@ -22,11 +23,8 @@ public class Downloader {
     }
 
     public void start() {
-        downloadFiles();
-    }
-
-    private void downloadFiles() {
-
+        HttpClient httpClient = new HttpClient();
+        httpClient.download(singleFiles);
     }
 
     private void init(String[] args) {

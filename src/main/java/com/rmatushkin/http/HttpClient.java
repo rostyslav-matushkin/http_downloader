@@ -2,7 +2,7 @@ package com.rmatushkin.http;
 
 import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.HttpClientException;
-import com.rmatushkin.exception.LimitException;
+import com.rmatushkin.exception.LimitParseException;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
@@ -16,12 +16,14 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
 public class HttpClient {
-    private static final int DEFAULT_LIMIT_VALUE = 10;
-    private static final Unit DEFAULT_LIMIT_UNIT = MEGABYTE;
     private Limit limit;
+    private boolean enabledLimit;
 
     public HttpClient() {
-        limit = getDefaultLimit();
+    }
+
+    public HttpClient(Limit limit) {
+        this.limit = limit;
     }
 
     public void download(String url, String destinationFilePath) {
@@ -39,12 +41,12 @@ public class HttpClient {
         }
     }
 
-    public void enableLimit(Limit limit) {
-        this.limit = limit;
+    public void enableLimit() {
+        enabledLimit = true;
     }
 
     public void disableLimit() {
-        limit = getDefaultLimit();
+        enabledLimit = false;
     }
 
     public static final class Limit {
@@ -73,11 +75,7 @@ public class HttpClient {
                 int limitValue = parseInt(string.substring(0, string.length() - 1));
                 return new Limit(limitValue, MEGABYTE);
             }
-            throw new LimitException(format("String %s can't be parsed!", string));
+            throw new LimitParseException(format("String %s can't be parsed!", string));
         }
-    }
-
-    private Limit getDefaultLimit() {
-        return new Limit(DEFAULT_LIMIT_VALUE, DEFAULT_LIMIT_UNIT);
     }
 }

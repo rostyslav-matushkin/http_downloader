@@ -12,10 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ProgramArgumentService {
-    private static final String[] PARAMETERS = {"n", "l", "f", "o"};
 
-    public Map<String, String> parse(String[] args) {
-        CommandLine commandLine = buildCommandLine(args);
+    public Map<String, String> parse(String[] args, String[] parameters) {
+        CommandLine commandLine = buildCommandLine(args, parameters);
 
         Map<String, String> valuesByParameters = new HashMap<>();
         for (Option option : commandLine.getOptions()) {
@@ -27,8 +26,8 @@ public class ProgramArgumentService {
         return valuesByParameters;
     }
 
-    private static CommandLine buildCommandLine(String[] args) {
-        Options options = buildOptions();
+    private static CommandLine buildCommandLine(String[] args, String[] parameters) {
+        Options options = buildOptions(parameters);
         CommandLineParser commandLineParser = new DefaultParser();
         try {
             return commandLineParser.parse(options, args);
@@ -37,12 +36,12 @@ public class ProgramArgumentService {
         }
     }
 
-    private static Options buildOptions() {
+    private static Options buildOptions(String[] parameters) {
         Options options = new Options();
-        options.addRequiredOption(PARAMETERS[0], PARAMETERS[0], true, ""); //TODO: write the description
-        options.addOption(PARAMETERS[1], PARAMETERS[1], false, ""); //TODO: write the description
-        options.addRequiredOption(PARAMETERS[2], PARAMETERS[2], true, ""); //TODO: write the description
-        options.addRequiredOption(PARAMETERS[3], PARAMETERS[3], true, ""); //TODO: write the description
+        options.addRequiredOption(parameters[0], parameters[0], true, ""); //TODO: write the description
+        options.addOption(parameters[1], parameters[1], false, ""); //TODO: write the description
+        options.addRequiredOption(parameters[2], parameters[2], true, ""); //TODO: write the description
+        options.addRequiredOption(parameters[3], parameters[3], true, ""); //TODO: write the description
         return options;
     }
 }

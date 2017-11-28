@@ -16,14 +16,14 @@ public class ProgramArgumentService {
     public Map<String, String> parse(String[] args, String[] parameters) {
         CommandLine commandLine = buildCommandLine(args, parameters);
 
-        Map<String, String> valuesByParameters = new HashMap<>();
+        Map<String, String> parametersToValues = new HashMap<>();
         for (Option option : commandLine.getOptions()) {
             String key = option.getOpt();
             String value = option.getValue();
-            valuesByParameters.put(key, value);
+            parametersToValues.put(key, value);
         }
 
-        return valuesByParameters;
+        return parametersToValues;
     }
 
     private static CommandLine buildCommandLine(String[] args, String[] parameters) {
@@ -38,7 +38,7 @@ public class ProgramArgumentService {
 
     private static Options buildOptions(String[] parameters) {
         Options options = new Options();
-        options.addRequiredOption(parameters[0], parameters[0], true, ""); //TODO: write the description
+        options.addOption(parameters[0], parameters[0], false, ""); //TODO: write the description
         options.addOption(parameters[1], parameters[1], false, ""); //TODO: write the description
         options.addRequiredOption(parameters[2], parameters[2], true, ""); //TODO: write the description
         options.addRequiredOption(parameters[3], parameters[3], true, ""); //TODO: write the description

@@ -1,6 +1,6 @@
 package com.rmatushkin.util;
 
-import static com.rmatushkin.constraint.RegexPattern.MANY_WHITESPACES;
+import static com.rmatushkin.constraint.RegexPattern.MANY_WHITESPACES_REGEX;
 import static com.rmatushkin.constraint.RegexPattern.UTF8_BOM;
 
 public class StringUtil {
@@ -10,6 +10,6 @@ public class StringUtil {
     }
 
     public static String removeExcessWhitespaces(String string) {
-        return string.replaceAll(MANY_WHITESPACES, " ");
+        return string.replaceAll(MANY_WHITESPACES_REGEX, " ");
     }
 }

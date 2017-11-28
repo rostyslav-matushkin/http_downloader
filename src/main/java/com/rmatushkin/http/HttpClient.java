@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
-import static com.rmatushkin.constraint.RegexPattern.LIMIT_PATTERN;
+import static com.rmatushkin.constraint.RegexPattern.LIMIT_REGEX;
 import static com.rmatushkin.enums.Unit.KILOBYTE;
 import static com.rmatushkin.enums.Unit.MEGABYTE;
 import static java.lang.Integer.parseInt;
@@ -79,11 +79,11 @@ public class HttpClient {
         }
 
         public static Limit parseLimit(String string) {
-            if (string.matches(LIMIT_PATTERN) && string.toLowerCase().endsWith(KILOBYTE.getLetter())) {
+            if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(KILOBYTE.getLetter())) {
                 int limitValue = parseInt(string.substring(0, string.length() - 1));
                 return new Limit(limitValue, KILOBYTE);
             }
-            if (string.matches(LIMIT_PATTERN) && string.toLowerCase().endsWith(MEGABYTE.getLetter())) {
+            if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(MEGABYTE.getLetter())) {
                 int limitValue = parseInt(string.substring(0, string.length() - 1));
                 return new Limit(limitValue, MEGABYTE);
             }

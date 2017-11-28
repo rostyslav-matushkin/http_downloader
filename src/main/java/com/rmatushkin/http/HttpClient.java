@@ -27,6 +27,18 @@ public class HttpClient {
     }
 
     public void download(String url, String destinationFilePath) {
+        if (enabledLimit) {
+            downloadWithLimit(url, destinationFilePath);
+        } else {
+            downloadWithotLimit(url, destinationFilePath);
+        }
+    }
+
+    private void downloadWithLimit(String url, String destinationFilePath) {
+
+    }
+
+    private void downloadWithotLimit(String url, String destinationFilePath) {
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new URL(url).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath)) {
             int length = limit.getValue() * limit.getUnit().getBytes();

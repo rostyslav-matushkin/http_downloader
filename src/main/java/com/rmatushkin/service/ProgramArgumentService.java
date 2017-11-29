@@ -32,7 +32,8 @@ public class ProgramArgumentService {
         try {
             return commandLineParser.parse(options, args);
         } catch (ParseException e) {
-            throw new ProgramArgumentException(e.getMessage());
+            System.err.println(e.getMessage());
+            throw new ProgramArgumentException();
         }
     }
 

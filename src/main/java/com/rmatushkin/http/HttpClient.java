@@ -5,7 +5,6 @@ import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.HttpClientException;
 import com.rmatushkin.exception.LimitParseException;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,9 +55,7 @@ public class HttpClient {
         for (SingleFile singleFile : singleFiles) {
             tasks.add(() -> {
                 URL url = singleFile.getUrl();
-                String fileName = singleFile.getFileName();
-                File destinationDirectory = singleFile.getDestinationDirectory();
-                String destinationFilePath = destinationDirectory + "\\" + fileName;
+                String destinationFilePath = singleFile.getDestinationFilePath();
 
                 try {
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -75,7 +72,8 @@ public class HttpClient {
 
                     ATOMIC_INTEGER.incrementAndGet();
                 } catch (IOException e) {
-                    throw new HttpClientException(e.getMessage());
+                    System.err.println(e.getMessage());
+                    throw new HttpClientException();
                 }
 
                 return null;
@@ -119,11 +117,14 @@ public class HttpClient {
                 int limitValue = parseInt(string.substring(0, string.length() - 1));
                 return new Limit(limitValue, MEGABYTE);
             }
-            throw new LimitParseException(format("String %s can't be parsed!", string));
+            System.err.println(format("String %s can't be parsed!", string));
+            throw new LimitParseException();
         }
     }
 
     private void runTasks(List<Callable<Object>> tasks) {
+        ExecutorService executorService = newWorkStealingPool();
+
         runAsync(() -> {
             float currentPercent = 0;
             float tempPercent = 0;
@@ -135,13 +136,13 @@ public class HttpClient {
                 }
             }
             System.out.println(100 + "%");
-        });
+        }, executorService);
 
-        ExecutorService executorService = newWorkStealingPool();
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
-            throw new HttpClientException(e.getMessage());
+            System.err.println(e.getMessage());
+            throw new HttpClientException();
         }
         executorService.shutdown();
     }

@@ -12,4 +12,8 @@ public class StringUtil {
     public static String removeExcessWhitespaces(String string) {
         return string.replaceAll(MANY_WHITESPACES_REGEX, " ");
     }
+
+    public static String removeAllWhitespaces(String string) {
+        return string.replaceAll(MANY_WHITESPACES_REGEX, "");
+    }
 }

@@ -8,6 +8,13 @@ public class SingleFile {
     private String fileName;
     private File destinationDirectory;
 
+    public String getDestinationFilePath() {
+        if (fileName != null && destinationDirectory != null) {
+            return destinationDirectory.getPath() + "\\" + fileName;
+        }
+        return null;
+    }
+
     public URL getUrl() {
         return url;
     }
@@ -16,16 +23,8 @@ public class SingleFile {
         this.url = url;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public File getDestinationDirectory() {
-        return destinationDirectory;
     }
 
     public void setDestinationDirectory(File destinationDirectory) {

@@ -8,8 +8,12 @@ import com.rmatushkin.service.ProgramArgumentService;
 import java.util.List;
 import java.util.Map;
 
+import static com.rmatushkin.http.Limit.parseLimit;
+import static java.lang.Integer.parseInt;
+
 public class Downloader {
     private static final String[] PARAMETERS = {"n", "l", "f", "o"};
+    private Map<String, String> parametersToValues;
     private List<SingleFile> singleFiles;
 
     public Downloader(String[] args) {
@@ -17,13 +21,25 @@ public class Downloader {
     }
 
     public void start() {
-        HttpClient httpClient = new HttpClient();
+        HttpClient httpClient;
+        String threadsQuantity = parametersToValues.get(PARAMETERS[0]);
+        if (threadsQuantity == null) {
+            httpClient = new HttpClient();
+        } else {
+            httpClient = new HttpClient(parseInt(threadsQuantity));
+        }
+        
+        String limitData = parametersToValues.get(PARAMETERS[1]);
+        if (limitData != null) {
+            httpClient.setLimit(parseLimit(limitData));
+        }
+
         httpClient.download(singleFiles);
     }
 
     private void init(String[] args) {
         ProgramArgumentService programArgumentService = new ProgramArgumentService();
-        Map<String, String> parametersToValues = programArgumentService.parse(args, PARAMETERS);
+        parametersToValues = programArgumentService.parse(args, PARAMETERS);
 
         FileService fileService = new FileService();
         String sourceFilePath = parametersToValues.get(PARAMETERS[2]);

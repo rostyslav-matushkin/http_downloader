@@ -1,9 +1,8 @@
 package com.rmatushkin.http;
 
 import com.rmatushkin.entity.SingleFile;
-import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.HttpClientException;
-import com.rmatushkin.exception.LimitParseException;
+import com.rmatushkin.service.FileService;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,43 +15,30 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.rmatushkin.constraint.RegexPattern.LIMIT_REGEX;
-import static com.rmatushkin.enums.Unit.KILOBYTE;
-import static com.rmatushkin.enums.Unit.MEGABYTE;
-import static java.lang.Integer.parseInt;
-import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
     private static final int BUFFER_SIZE = 4096;
+    private FileService fileService;
     private AtomicInteger atomicInteger;
+    private int threadsQuantity;
     private Limit limit;
-    private boolean enabledLimit;
 
     public HttpClient() {
+        fileService = new FileService();
         atomicInteger = new AtomicInteger();
     }
 
-    public HttpClient(Limit limit) {
+    public HttpClient(int threadsQuantity) {
+        fileService = new FileService();
+        validateThreadsQuantity(threadsQuantity);
+        this.threadsQuantity = threadsQuantity;
         atomicInteger = new AtomicInteger();
-        this.limit = limit;
     }
 
     public void download(List<SingleFile> singleFiles) {
-        if (enabledLimit) {
-            downloadWithLimit(singleFiles);
-        } else {
-            downloadWithoutLimit(singleFiles);
-        }
-    }
-
-    private void downloadWithLimit(List<SingleFile> singleFiles) {
-
-    }
-
-    private void downloadWithoutLimit(List<SingleFile> singleFiles) {
         List<Callable<Object>> tasks = new ArrayList<>();
 
         for (SingleFile singleFile : singleFiles) {
@@ -63,14 +49,18 @@ public class HttpClient {
         runTasks(tasks);
     }
 
+    public void setLimit(Limit limit) {
+        this.limit = limit;
+    }
+
     private Callable<Object> createTask(SingleFile singleFile) {
         return () -> {
             URL url = new URL(singleFile.getUrl());
+            fileService.createDirectory(singleFile.getDirectoryPath());
             String destinationFilePath = singleFile.getDestinationFilePath();
 
             try {
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                InputStream inputStream = httpURLConnection.getInputStream();
+                InputStream inputStream = buildInputStream(url);
                 FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath);
 
                 byte[] buffer = new byte[BUFFER_SIZE];
@@ -90,17 +80,24 @@ public class HttpClient {
         };
     }
 
+    private InputStream buildInputStream(URL url) {
+        try {
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            return httpURLConnection.getInputStream();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            throw new HttpClientException();
+        }
+    }
+
     private void runTasks(List<Callable<Object>> tasks) {
-        ExecutorService executorService = newWorkStealingPool();
-        startTasks(tasks, executorService);
-    }
+        ExecutorService executorService;
+        if (threadsQuantity == 0) {
+            executorService = newWorkStealingPool();
+        } else {
+            executorService = newFixedThreadPool(threadsQuantity);
+        }
 
-    private void runTasks(List<Callable<Object>> tasks, int threadsQuantity) {
-        ExecutorService executorService = newFixedThreadPool(threadsQuantity);
-        startTasks(tasks, executorService);
-    }
-
-    private void startTasks(List<Callable<Object>> tasks, ExecutorService executorService) {
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
@@ -124,42 +121,10 @@ public class HttpClient {
         });
     }
 
-    public void enableLimit() {
-        enabledLimit = true;
-    }
-
-    public void disableLimit() {
-        enabledLimit = false;
-    }
-
-    public static final class Limit {
-        private final int value;
-        private final Unit unit;
-
-        public Limit(int value, Unit unit) {
-            this.value = value;
-            this.unit = unit;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public Unit getUnit() {
-            return unit;
-        }
-
-        public static Limit parseLimit(String string) {
-            if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(KILOBYTE.getLetter())) {
-                int limitValue = parseInt(string.substring(0, string.length() - 1));
-                return new Limit(limitValue, KILOBYTE);
-            }
-            if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(MEGABYTE.getLetter())) {
-                int limitValue = parseInt(string.substring(0, string.length() - 1));
-                return new Limit(limitValue, MEGABYTE);
-            }
-            System.err.println(format("String %s can't be parsed!", string));
-            throw new LimitParseException();
+    private void validateThreadsQuantity(int threadsQuantity) {
+        if (threadsQuantity <= 0) {
+            System.err.println("Threads quantity can't be less or equal ZERO!");
+            throw new HttpClientException();
         }
     }
 }

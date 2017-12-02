@@ -39,8 +39,8 @@ public class ProgramArgumentService {
 
     private static Options buildOptions(String[] parameters) {
         Options options = new Options();
-        options.addOption(parameters[0], parameters[0], false, ""); //TODO: write the description
-        options.addOption(parameters[1], parameters[1], false, ""); //TODO: write the description
+        options.addOption(parameters[0], ""); //TODO: write the description
+        options.addOption(parameters[1], ""); //TODO: write the description
         options.addRequiredOption(parameters[2], parameters[2], true, ""); //TODO: write the description
         options.addRequiredOption(parameters[3], parameters[3], true, ""); //TODO: write the description
         return options;

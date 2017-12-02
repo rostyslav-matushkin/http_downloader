@@ -112,19 +112,17 @@ public class HttpClient {
 
     private void runPercentCalculation(int taskSize) {
         runAsync(() -> {
-            float currentPercent = 0;
-            float tempPercent = 0;
+            int currentPercent = 0;
+            int tempPercent = 0;
             System.out.println(currentPercent + "%");
-            while ((currentPercent = atomicInteger.floatValue() * 100 / taskSize) < 100) {
+            while ((currentPercent = atomicInteger.get() * 100 / taskSize) <= 100) {
                 if (tempPercent != currentPercent) {
                     System.out.println(currentPercent + "%");
                     tempPercent = currentPercent;
                 }
             }
-            System.out.println(100 + "%");
         });
     }
-
 
     public void enableLimit() {
         enabledLimit = true;

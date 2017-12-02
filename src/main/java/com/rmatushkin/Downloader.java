@@ -5,7 +5,6 @@ import com.rmatushkin.http.HttpClient;
 import com.rmatushkin.service.FileService;
 import com.rmatushkin.service.ProgramArgumentService;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +30,8 @@ public class Downloader {
         singleFiles = fileService.getSingleFiles(sourceFilePath);
 
         String destinationDirectoryPath = parametersToValues.get(PARAMETERS[3]);
-        File destinationDirectory = fileService.createDirectory(destinationDirectoryPath);
         for (SingleFile singleFile : singleFiles) {
-            singleFile.setDestinationDirectory(destinationDirectory);
+            singleFile.setDestinationDirectoryPath(destinationDirectoryPath);
         }
     }
 }

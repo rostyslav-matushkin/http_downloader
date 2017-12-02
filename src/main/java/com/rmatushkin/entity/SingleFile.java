@@ -3,6 +3,13 @@ package com.rmatushkin.entity;
 public class SingleFile {
     private String url;
     private String fileName;
+    private String destinationDirectoryPath;
+
+    public String getResultPath() {
+        if (fileName != null && destinationDirectoryPath != null) {
+            return destinationDirectoryPath + "\\" + fileName;
+        }
+    }
 
     public String getUrl() {
         return url;
@@ -18,5 +25,13 @@ public class SingleFile {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getDestinationDirectoryPath() {
+        return destinationDirectoryPath;
+    }
+
+    public void setDestinationDirectoryPath(String destinationDirectoryPath) {
+        this.destinationDirectoryPath = destinationDirectoryPath;
     }
 }

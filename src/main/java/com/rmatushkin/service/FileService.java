@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,6 +36,7 @@ public class FileService {
                 if (readLine.contains(" ")) {
                     String[] urlAndFileName = readLine.split(" ");
                     singleFile.setUrl(urlAndFileName[0]);
+                    //TODO: add validate for file extension
                     singleFile.setFileName(urlAndFileName[1]);
                 } else {
                     String fileExtension = extractFileExtension(readLine);

@@ -27,7 +27,8 @@ public class Downloader {
         Map<String, String> parametersToValues = programArgumentService.parse(args, PARAMETERS);
 
         FileService fileService = new FileService();
-        singleFiles = fileService.collectSingleFiles(parametersToValues.get(PARAMETERS[2]));
+        String sourceFilePath = parametersToValues.get(PARAMETERS[2]);
+        singleFiles = fileService.getSingleFiles(sourceFilePath);
 
         String destinationDirectoryPath = parametersToValues.get(PARAMETERS[3]);
         File destinationDirectory = fileService.createDirectory(destinationDirectoryPath);

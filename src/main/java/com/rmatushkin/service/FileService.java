@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import static com.rmatushkin.constraint.RegexPattern.FILE_EXTENSION;
 import static com.rmatushkin.constraint.RegexPattern.URL_AND_FILE_NAME_REGEX;
+import static com.rmatushkin.constraint.RegexPattern.URL_REGEX;
 import static com.rmatushkin.util.StringUtil.removeAllWhitespaces;
 import static com.rmatushkin.util.StringUtil.removeExcessWhitespaces;
 import static com.rmatushkin.util.StringUtil.removeUtf8Bom;
@@ -23,26 +24,30 @@ import static java.util.regex.Pattern.compile;
 
 public class FileService {
 
-    public List<SingleFile> collectSingleFiles(String path) {
-        File file = findFile(path);
+    public List<SingleFile> getSingleFiles(String filePath) {
+        File file = findFile(filePath);
 
         List<SingleFile> singleFiles = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             int count = 0;
             while (bufferedReader.ready()) {
                 String readLine = processReadLine(bufferedReader.readLine());
+
                 SingleFile singleFile = new SingleFile();
                 if (readLine.contains(" ")) {
                     String[] urlAndFileName = readLine.split(" ");
-                    singleFile.setUrl(new URL(urlAndFileName[0]));
+                    singleFile.setUrl(urlAndFileName[0]);
                     singleFile.setFileName(urlAndFileName[1]);
                 } else {
                     String fileExtension = extractFileExtension(readLine);
-                    singleFile.setUrl(new URL(readLine));
-                    singleFile.setFileName(++count + fileExtension);
+                    singleFile.setUrl(readLine);
+                    String fileName = (++count) + fileExtension;
+                    singleFile.setFileName(fileName);
                 }
+
                 singleFiles.add(singleFile);
             }
+
             return singleFiles;
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -70,7 +75,7 @@ public class FileService {
         }
         if (!file.canRead()) {
             System.err.println(format("No access to read the path: %s", path));
-            throw new FileException(format("No access to read the path: %s", path));
+            throw new FileException();
         }
         if (!file.isFile()) {
             System.err.println(format("It isn't the file path: %s", path));
@@ -81,10 +86,20 @@ public class FileService {
 
     private String processReadLine(String readLine) {
         readLine = removeUtf8Bom(readLine);
+
+        validateUrl(readLine);
+
         if (readLine.matches(URL_AND_FILE_NAME_REGEX)) {
             return removeExcessWhitespaces(readLine);
         } else {
             return removeAllWhitespaces(readLine);
+        }
+    }
+
+    private void validateUrl(String string) {
+        if (!string.matches(URL_REGEX)) {
+            System.err.println(format("The line %s doesn't match by regex %s", string, URL_REGEX));
+            throw new FileException();
         }
     }
 

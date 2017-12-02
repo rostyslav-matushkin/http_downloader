@@ -22,18 +22,21 @@ import static com.rmatushkin.enums.Unit.MEGABYTE;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
-    private static volatile AtomicInteger ATOMIC_INTEGER = new AtomicInteger();
     private static final int BUFFER_SIZE = 4096;
+    private AtomicInteger atomicInteger;
     private Limit limit;
     private boolean enabledLimit;
 
     public HttpClient() {
+        atomicInteger = new AtomicInteger();
     }
 
     public HttpClient(Limit limit) {
+        atomicInteger = new AtomicInteger();
         this.limit = limit;
     }
 
@@ -70,7 +73,7 @@ public class HttpClient {
                     fileOutputStream.close();
                     inputStream.close();
 
-                    ATOMIC_INTEGER.incrementAndGet();
+                    atomicInteger.incrementAndGet();
                 } catch (IOException e) {
                     System.err.println(e.getMessage());
                     throw new HttpClientException();
@@ -80,6 +83,7 @@ public class HttpClient {
             });
         }
 
+        runPercentCalculation(tasks.size());
         runTasks(tasks);
     }
 
@@ -124,20 +128,6 @@ public class HttpClient {
 
     private void runTasks(List<Callable<Object>> tasks) {
         ExecutorService executorService = newWorkStealingPool();
-
-        runAsync(() -> {
-            float currentPercent = 0;
-            float tempPercent = 0;
-            System.out.println((int) currentPercent + "%");
-            while ((currentPercent = ATOMIC_INTEGER.floatValue() * 100 / tasks.size()) < 100) {
-                if (tempPercent != currentPercent) {
-                    System.out.println((int) currentPercent + "%");
-                    tempPercent = currentPercent;
-                }
-            }
-            System.out.println(100 + "%");
-        }, executorService);
-
         try {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
@@ -145,5 +135,31 @@ public class HttpClient {
             throw new HttpClientException();
         }
         executorService.shutdown();
+    }
+
+    private void runTasks(List<Callable<Object>> tasks, int threadsQuantity) {
+        ExecutorService executorService = newFixedThreadPool(threadsQuantity);
+        try {
+            executorService.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            System.err.println(e.getMessage());
+            throw new HttpClientException();
+        }
+        executorService.shutdown();
+    }
+
+    private void runPercentCalculation(int taskSize) {
+        runAsync(() -> {
+            float currentPercent = 0;
+            float tempPercent = 0;
+            System.out.println((int) currentPercent + "%");
+            while ((currentPercent = atomicInteger.floatValue() * 100 / taskSize) < 100) {
+                if (tempPercent != currentPercent) {
+                    System.out.println((int) currentPercent + "%");
+                    tempPercent = currentPercent;
+                }
+            }
+            System.out.println(100 + "%");
+        });
     }
 }

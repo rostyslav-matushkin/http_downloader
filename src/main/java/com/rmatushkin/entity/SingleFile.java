@@ -3,12 +3,13 @@ package com.rmatushkin.entity;
 public class SingleFile {
     private String url;
     private String fileName;
-    private String destinationDirectoryPath;
+    private String directoryPath;
 
-    public String getResultPath() {
-        if (fileName != null && destinationDirectoryPath != null) {
-            return destinationDirectoryPath + "\\" + fileName;
+    public String getDestinationFilePath() {
+        if (fileName != null && directoryPath != null) {
+            return directoryPath + "\\" + fileName;
         }
+        return null;
     }
 
     public String getUrl() {
@@ -27,11 +28,11 @@ public class SingleFile {
         this.fileName = fileName;
     }
 
-    public String getDestinationDirectoryPath() {
-        return destinationDirectoryPath;
+    public String getDirectoryPath() {
+        return directoryPath;
     }
 
-    public void setDestinationDirectoryPath(String destinationDirectoryPath) {
-        this.destinationDirectoryPath = destinationDirectoryPath;
+    public void setDirectoryPath(String directoryPath) {
+        this.directoryPath = directoryPath;
     }
 }

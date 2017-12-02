@@ -31,7 +31,7 @@ public class Downloader {
 
         String destinationDirectoryPath = parametersToValues.get(PARAMETERS[3]);
         for (SingleFile singleFile : singleFiles) {
-            singleFile.setDestinationDirectoryPath(destinationDirectoryPath);
+            singleFile.setDirectoryPath(destinationDirectoryPath);
         }
     }
 }

@@ -53,39 +53,78 @@ public class HttpClient {
     }
 
     private void downloadWithoutLimit(List<SingleFile> singleFiles) {
-        List<Callable<Object>> tasks = new ArrayList<>(singleFiles.size());
+        List<Callable<Object>> tasks = new ArrayList<>();
 
         for (SingleFile singleFile : singleFiles) {
-            tasks.add(() -> {
-                URL url = singleFile.getUrl();
-                String destinationFilePath = singleFile.getDestinationFilePath();
-
-                try {
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    InputStream inputStream = httpURLConnection.getInputStream();
-                    FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath);
-
-                    byte[] buffer = new byte[BUFFER_SIZE];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        fileOutputStream.write(buffer, 0, bytesRead);
-                    }
-                    fileOutputStream.close();
-                    inputStream.close();
-
-                    atomicInteger.incrementAndGet();
-                } catch (IOException e) {
-                    System.err.println(e.getMessage());
-                    throw new HttpClientException();
-                }
-
-                return null;
-            });
+            tasks.add(createTask(singleFile));
         }
 
         runPercentCalculation(tasks.size());
         runTasks(tasks);
     }
+
+    private Callable<Object> createTask(SingleFile singleFile) {
+        return () -> {
+            URL url = new URL(singleFile.getUrl());
+            String destinationFilePath = singleFile.getDestinationFilePath();
+
+            try {
+                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                InputStream inputStream = httpURLConnection.getInputStream();
+                FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath);
+
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    fileOutputStream.write(buffer, 0, bytesRead);
+                }
+                fileOutputStream.close();
+                inputStream.close();
+
+                atomicInteger.incrementAndGet();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                throw new HttpClientException();
+            }
+            return null;
+        };
+    }
+
+    private void runTasks(List<Callable<Object>> tasks) {
+        ExecutorService executorService = newWorkStealingPool();
+        startTasks(tasks, executorService);
+    }
+
+    private void runTasks(List<Callable<Object>> tasks, int threadsQuantity) {
+        ExecutorService executorService = newFixedThreadPool(threadsQuantity);
+        startTasks(tasks, executorService);
+    }
+
+    private void startTasks(List<Callable<Object>> tasks, ExecutorService executorService) {
+        try {
+            executorService.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            System.err.println(e.getMessage());
+            throw new HttpClientException();
+        }
+        executorService.shutdown();
+    }
+
+    private void runPercentCalculation(int taskSize) {
+        runAsync(() -> {
+            float currentPercent = 0;
+            float tempPercent = 0;
+            System.out.println(currentPercent + "%");
+            while ((currentPercent = atomicInteger.floatValue() * 100 / taskSize) < 100) {
+                if (tempPercent != currentPercent) {
+                    System.out.println(currentPercent + "%");
+                    tempPercent = currentPercent;
+                }
+            }
+            System.out.println(100 + "%");
+        });
+    }
+
 
     public void enableLimit() {
         enabledLimit = true;
@@ -124,42 +163,5 @@ public class HttpClient {
             System.err.println(format("String %s can't be parsed!", string));
             throw new LimitParseException();
         }
-    }
-
-    private void runTasks(List<Callable<Object>> tasks) {
-        ExecutorService executorService = newWorkStealingPool();
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
-            throw new HttpClientException();
-        }
-        executorService.shutdown();
-    }
-
-    private void runTasks(List<Callable<Object>> tasks, int threadsQuantity) {
-        ExecutorService executorService = newFixedThreadPool(threadsQuantity);
-        try {
-            executorService.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
-            throw new HttpClientException();
-        }
-        executorService.shutdown();
-    }
-
-    private void runPercentCalculation(int taskSize) {
-        runAsync(() -> {
-            float currentPercent = 0;
-            float tempPercent = 0;
-            System.out.println((int) currentPercent + "%");
-            while ((currentPercent = atomicInteger.floatValue() * 100 / taskSize) < 100) {
-                if (tempPercent != currentPercent) {
-                    System.out.println((int) currentPercent + "%");
-                    tempPercent = currentPercent;
-                }
-            }
-            System.out.println(100 + "%");
-        });
     }
 }

@@ -2,7 +2,6 @@ package com.rmatushkin.http;
 
 import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.exception.HttpClientException;
-import com.rmatushkin.service.FileService;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,16 +23,13 @@ import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
     private static final int BYTES_BUFFER_SIZE = 1024;
-    private FileService fileService;
     private int threadsQuantity;
     private Limit limit;
 
     public HttpClient() {
-        fileService = new FileService();
     }
 
     public HttpClient(int threadsQuantity) {
-        fileService = new FileService();
         validateThreadsQuantity(threadsQuantity);
         this.threadsQuantity = threadsQuantity;
     }
@@ -55,7 +51,6 @@ public class HttpClient {
     private <T> Callable<T> createTask(SingleFile singleFile) {
         return () -> {
             URL url = new URL(singleFile.getUrl());
-            fileService.createDirectory(singleFile.getDirectoryPath());
             String destinationFilePath = singleFile.getDestinationFilePath();
 
             try {

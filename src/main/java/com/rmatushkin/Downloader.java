@@ -46,6 +46,7 @@ public class Downloader {
         singleFiles = fileService.getSingleFiles(sourceFilePath);
 
         String destinationDirectoryPath = parametersToValues.get(PARAMETERS[3]);
+        fileService.createDirectory(destinationDirectoryPath);
         for (SingleFile singleFile : singleFiles) {
             singleFile.setDirectoryPath(destinationDirectoryPath);
         }

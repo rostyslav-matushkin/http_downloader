@@ -23,7 +23,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
-    private static final int BUFFER_SIZE = 1024;
+    private static final int BYTES_BUFFER_SIZE = 1024;
     private FileService fileService;
     private AtomicInteger atomicInteger;
     private int threadsQuantity;
@@ -95,7 +95,7 @@ public class HttpClient {
     }
 
     private void readWriteWithoutLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
-        byte[] buffer = new byte[BUFFER_SIZE];
+        byte[] buffer = new byte[BYTES_BUFFER_SIZE];
         int bytesRead;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
             outputStream.write(buffer, 0, bytesRead);
@@ -104,7 +104,7 @@ public class HttpClient {
 
     private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
         int bytesPerSecond = limit.getUnit().getBytes() * limit.getValue();
-        byte[] buffer = new byte[BUFFER_SIZE];
+        byte[] buffer = new byte[BYTES_BUFFER_SIZE];
         int bytesCounter = 0;
         long checkTime = currentTimeMillis() + 1000;
         int bytesRead;

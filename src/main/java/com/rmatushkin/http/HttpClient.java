@@ -16,12 +16,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.System.currentTimeMillis;
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 1024;
     private FileService fileService;
     private AtomicInteger atomicInteger;
     private int threadsQuantity;
@@ -101,10 +103,32 @@ public class HttpClient {
     }
 
     private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
+        int bytesPerSecond = limit.getUnit().getBytes() * limit.getValue();
         byte[] buffer = new byte[BUFFER_SIZE];
+        int totalBytesRead = 0;
+        long checkTime = currentTimeMillis() + 1000;
         int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
+        while (true) {
+            bytesRead = inputStream.read(buffer);
+            if (bytesRead == -1) {
+                break;
+            }
             outputStream.write(buffer, 0, bytesRead);
+            totalBytesRead += bytesRead;
+            if (totalBytesRead < bytesPerSecond) {
+                continue;
+            }
+            try {
+                long sleepTime = checkTime - currentTimeMillis();
+                if (sleepTime >= 0) {
+                    sleep(sleepTime);
+                }
+            } catch (InterruptedException e) {
+                System.err.println(e.getMessage());
+                throw new HttpClientException();
+            }
+            totalBytesRead = 0;
+            checkTime = currentTimeMillis();
         }
     }
 

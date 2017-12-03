@@ -105,7 +105,7 @@ public class HttpClient {
     private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
         int bytesPerSecond = limit.getUnit().getBytes() * limit.getValue();
         byte[] buffer = new byte[BUFFER_SIZE];
-        int totalBytesRead = 0;
+        int bytesCounter = 0;
         long checkTime = currentTimeMillis() + 1000;
         int bytesRead;
         while (true) {
@@ -114,8 +114,8 @@ public class HttpClient {
                 break;
             }
             outputStream.write(buffer, 0, bytesRead);
-            totalBytesRead += bytesRead;
-            if (totalBytesRead < bytesPerSecond) {
+            bytesCounter += bytesRead;
+            if (bytesCounter < bytesPerSecond) {
                 continue;
             }
             try {
@@ -127,7 +127,7 @@ public class HttpClient {
                 System.err.println(e.getMessage());
                 throw new HttpClientException();
             }
-            totalBytesRead = 0;
+            bytesCounter = 0;
             checkTime = currentTimeMillis() + 1000;
         }
     }

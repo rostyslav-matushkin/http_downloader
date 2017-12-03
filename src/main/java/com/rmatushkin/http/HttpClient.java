@@ -4,6 +4,7 @@ import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.exception.HttpClientException;
 import com.rmatushkin.service.FileService;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,31 +15,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
-import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class HttpClient {
     private static final int BYTES_BUFFER_SIZE = 1024;
     private FileService fileService;
-    private AtomicInteger atomicInteger;
     private int threadsQuantity;
     private Limit limit;
 
     public HttpClient() {
         fileService = new FileService();
-        atomicInteger = new AtomicInteger();
     }
 
     public HttpClient(int threadsQuantity) {
         fileService = new FileService();
         validateThreadsQuantity(threadsQuantity);
         this.threadsQuantity = threadsQuantity;
-        atomicInteger = new AtomicInteger();
     }
 
     public void download(List<SingleFile> singleFiles) {
@@ -48,7 +45,6 @@ public class HttpClient {
             tasks.add(createTask(singleFile));
         }
 
-        runPercentCalculation(tasks.size());
         runTasks(tasks);
     }
 
@@ -64,6 +60,9 @@ public class HttpClient {
 
             try {
                 InputStream inputStream = buildInputStream(url);
+                if (inputStream == null) {
+                    return null;
+                }
                 OutputStream outputStream = new FileOutputStream(destinationFilePath);
 
                 if (limit == null) {
@@ -76,10 +75,9 @@ public class HttpClient {
                 inputStream.close();
             } catch (IOException e) {
                 System.err.println(e.getMessage());
-                throw new HttpClientException(e.getMessage());
+                throw new HttpClientException(e);
             }
 
-            atomicInteger.incrementAndGet();
             return null;
         };
     }
@@ -88,9 +86,12 @@ public class HttpClient {
         try {
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             return httpURLConnection.getInputStream();
+        } catch (FileNotFoundException e) {
+            System.err.println(format("File '%s' not found!", e.getMessage()));
+            return null;
         } catch (IOException e) {
             System.err.println(e.getMessage());
-            throw new HttpClientException(e.getMessage());
+            throw new HttpClientException(e);
         }
     }
 
@@ -125,7 +126,7 @@ public class HttpClient {
                 }
             } catch (InterruptedException e) {
                 System.err.println(e.getMessage());
-                throw new HttpClientException(e.getMessage());
+                throw new HttpClientException(e);
             }
             bytesCounter = 0;
             checkTime = currentTimeMillis() + 1000;
@@ -141,33 +142,19 @@ public class HttpClient {
         }
 
         try {
+            System.out.println("In progress...");
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
-            throw new HttpClientException(e.getMessage());
+            throw new HttpClientException(e);
         }
         executorService.shutdown();
-    }
-
-    private void runPercentCalculation(int taskSize) {
-        runAsync(() -> {
-            int currentPercent = 0;
-            int tempPercent = 0;
-            System.out.println(currentPercent + "%");
-            while ((currentPercent = atomicInteger.get() * 100 / taskSize) <= 100) {
-                if (tempPercent != currentPercent) {
-                    System.out.println(currentPercent + "%");
-                    tempPercent = currentPercent;
-                }
-            }
-        });
+        System.out.println("Done!");
     }
 
     private void validateThreadsQuantity(int threadsQuantity) {
         if (threadsQuantity <= 0) {
-            String errorMessage = "Threads quantity can't be less or equal ZERO!";
-            System.err.println(errorMessage);
-            throw new HttpClientException(errorMessage);
+            throw new HttpClientException("Threads quantity can't be less or equal ZERO!");
         }
     }
 }

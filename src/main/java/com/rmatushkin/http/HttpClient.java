@@ -120,7 +120,7 @@ public class HttpClient {
             }
             try {
                 long sleepTime = checkTime - currentTimeMillis();
-                if (sleepTime >= 0) {
+                if (sleepTime > 0) {
                     sleep(sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -128,7 +128,7 @@ public class HttpClient {
                 throw new HttpClientException();
             }
             totalBytesRead = 0;
-            checkTime = currentTimeMillis();
+            checkTime = currentTimeMillis() + 1000;
         }
     }
 

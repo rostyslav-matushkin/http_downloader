@@ -35,6 +35,6 @@ public class Limit {
             int limitValue = parseInt(string.substring(0, string.length() - 1));
             return new Limit(limitValue, MEGABYTE);
         }
-        throw new LimitParseException(format("String %s can't be parsed!", string));
+        throw new LimitParseException(format("String '%s' can't be parsed!", string));
     }
 }

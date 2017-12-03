@@ -76,7 +76,7 @@ public class HttpClient {
                 inputStream.close();
             } catch (IOException e) {
                 System.err.println(e.getMessage());
-                throw new HttpClientException(e.getMessage());
+                throw new HttpClientException(e);
             }
 
             atomicInteger.incrementAndGet();
@@ -90,7 +90,7 @@ public class HttpClient {
             return httpURLConnection.getInputStream();
         } catch (IOException e) {
             System.err.println(e.getMessage());
-            throw new HttpClientException(e.getMessage());
+            throw new HttpClientException(e);
         }
     }
 
@@ -125,7 +125,7 @@ public class HttpClient {
                 }
             } catch (InterruptedException e) {
                 System.err.println(e.getMessage());
-                throw new HttpClientException(e.getMessage());
+                throw new HttpClientException(e);
             }
             bytesCounter = 0;
             checkTime = currentTimeMillis() + 1000;
@@ -144,7 +144,7 @@ public class HttpClient {
             executorService.invokeAll(tasks);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
-            throw new HttpClientException(e.getMessage());
+            throw new HttpClientException(e);
         }
         executorService.shutdown();
     }
@@ -165,9 +165,7 @@ public class HttpClient {
 
     private void validateThreadsQuantity(int threadsQuantity) {
         if (threadsQuantity <= 0) {
-            String errorMessage = "Threads quantity can't be less or equal ZERO!";
-            System.err.println(errorMessage);
-            throw new HttpClientException(errorMessage);
+            throw new HttpClientException("Threads quantity can't be less or equal ZERO!");
         }
     }
 }

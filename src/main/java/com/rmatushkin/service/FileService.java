@@ -51,7 +51,7 @@ public class FileService {
             return singleFiles;
         } catch (IOException e) {
             System.err.println(e.getMessage());
-            throw new FileException(e.getMessage());
+            throw new FileException(e);
         }
     }
 
@@ -63,27 +63,19 @@ public class FileService {
         if (directory.mkdir()) {
             return directory;
         }
-        String errorMessage = format("Can't create the directory by path: %s", path);
-        System.err.println(errorMessage);
-        throw new FileException(errorMessage);
+        throw new FileException(format("Can't create the directory by path: %s", path));
     }
 
     private File findFile(String path) {
         File file = new File(path);
         if (!file.exists()) {
-            String errorMessage = format("The path isn't exist: %s", path);
-            System.err.println(errorMessage);
-            throw new FileException(errorMessage);
+            throw new FileException(format("The path isn't exist: %s", path));
         }
         if (!file.canRead()) {
-            String errorMessage = format("No access to read the path: %s", path);
-            System.err.println(errorMessage);
-            throw new FileException(errorMessage);
+            throw new FileException(format("No access to read the path: %s", path));
         }
         if (!file.isFile()) {
-            String errorMessage = format("It isn't the file path: %s", path);
-            System.err.println(errorMessage);
-            throw new FileException(errorMessage);
+            throw new FileException(format("It isn't the file path: %s", path));
         }
         return file;
     }
@@ -102,9 +94,7 @@ public class FileService {
 
     private void validateUrl(String string) {
         if (!string.matches(URL_REGEX)) {
-            String errorMessage = format("The line %s doesn't match by regex %s", string, URL_REGEX);
-            System.err.println(errorMessage);
-            throw new FileException(errorMessage);
+            throw new FileException(format("The line %s doesn't match by regex %s", string, URL_REGEX));
         }
     }
 

@@ -7,6 +7,7 @@ import com.rmatushkin.service.FileService;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class HttpClient {
         this.limit = limit;
     }
 
-    private Callable<Object> createTask(SingleFile singleFile) {
+    private <T> Callable<T> createTask(SingleFile singleFile) {
         return () -> {
             URL url = new URL(singleFile.getUrl());
             fileService.createDirectory(singleFile.getDirectoryPath());
@@ -61,21 +62,22 @@ public class HttpClient {
 
             try {
                 InputStream inputStream = buildInputStream(url);
-                FileOutputStream fileOutputStream = new FileOutputStream(destinationFilePath);
+                OutputStream outputStream = new FileOutputStream(destinationFilePath);
 
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    fileOutputStream.write(buffer, 0, bytesRead);
+                if (limit == null) {
+                    readWriteWithoutLimit(inputStream, outputStream);
+                } else {
+                    readWriteWithLimit(inputStream, outputStream);
                 }
-                fileOutputStream.close();
-                inputStream.close();
 
-                atomicInteger.incrementAndGet();
+                outputStream.close();
+                inputStream.close();
             } catch (IOException e) {
                 System.err.println(e.getMessage());
                 throw new HttpClientException();
             }
+
+            atomicInteger.incrementAndGet();
             return null;
         };
     }
@@ -90,7 +92,23 @@ public class HttpClient {
         }
     }
 
-    private void runTasks(List<Callable<Object>> tasks) {
+    private void readWriteWithoutLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+    }
+
+    private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+    }
+
+    private <T> void runTasks(List<Callable<T>> tasks) {
         ExecutorService executorService;
         if (threadsQuantity == 0) {
             executorService = newWorkStealingPool();

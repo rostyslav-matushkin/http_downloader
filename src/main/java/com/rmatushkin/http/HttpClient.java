@@ -4,6 +4,7 @@ import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.exception.HttpClientException;
 import com.rmatushkin.service.FileService;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -58,6 +60,9 @@ public class HttpClient {
 
             try {
                 InputStream inputStream = buildInputStream(url);
+                if (inputStream == null) {
+                    return null;
+                }
                 OutputStream outputStream = new FileOutputStream(destinationFilePath);
 
                 if (limit == null) {
@@ -81,6 +86,9 @@ public class HttpClient {
         try {
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             return httpURLConnection.getInputStream();
+        } catch (FileNotFoundException e) {
+            System.err.println(format("File '%s' not found!", e.getMessage()));
+            return null;
         } catch (IOException e) {
             System.err.println(e.getMessage());
             throw new HttpClientException(e);

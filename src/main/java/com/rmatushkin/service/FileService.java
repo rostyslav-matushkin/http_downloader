@@ -51,7 +51,7 @@ public class FileService {
             return singleFiles;
         } catch (IOException e) {
             System.err.println(e.getMessage());
-            throw new FileException();
+            throw new FileException(e.getMessage());
         }
     }
 
@@ -63,23 +63,27 @@ public class FileService {
         if (directory.mkdir()) {
             return directory;
         }
-        System.err.println(format("Can't create the directory by path: %s", path));
-        throw new FileException();
+        String errorMessage = format("Can't create the directory by path: %s", path);
+        System.err.println(errorMessage);
+        throw new FileException(errorMessage);
     }
 
     private File findFile(String path) {
         File file = new File(path);
         if (!file.exists()) {
-            System.err.println(format("The path isn't exist: %s", path));
-            throw new FileException();
+            String errorMessage = format("The path isn't exist: %s", path);
+            System.err.println(errorMessage);
+            throw new FileException(errorMessage);
         }
         if (!file.canRead()) {
-            System.err.println(format("No access to read the path: %s", path));
-            throw new FileException();
+            String errorMessage = format("No access to read the path: %s", path);
+            System.err.println(errorMessage);
+            throw new FileException(errorMessage);
         }
         if (!file.isFile()) {
-            System.err.println(format("It isn't the file path: %s", path));
-            throw new FileException();
+            String errorMessage = format("It isn't the file path: %s", path);
+            System.err.println(errorMessage);
+            throw new FileException(errorMessage);
         }
         return file;
     }
@@ -98,8 +102,9 @@ public class FileService {
 
     private void validateUrl(String string) {
         if (!string.matches(URL_REGEX)) {
-            System.err.println(format("The line %s doesn't match by regex %s", string, URL_REGEX));
-            throw new FileException();
+            String errorMessage = format("The line %s doesn't match by regex %s", string, URL_REGEX);
+            System.err.println(errorMessage);
+            throw new FileException(errorMessage);
         }
     }
 

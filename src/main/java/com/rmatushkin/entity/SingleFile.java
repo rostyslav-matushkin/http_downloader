@@ -1,35 +1,32 @@
 package com.rmatushkin.entity;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class SingleFile {
     private String url;
     private String fileName;
     private String directoryPath;
 
-    public String getDestinationFilePath() {
-        if (fileName != null && directoryPath != null) {
-            return directoryPath + "\\" + fileName;
-        }
-        return null;
+    public InputStream openInputStream() throws IOException {
+        HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection();
+        return httpURLConnection.getInputStream();
     }
 
-    public String getUrl() {
-        return url;
+    public OutputStream openOutputStream() throws IOException {
+        return new FileOutputStream(directoryPath + "\\" + fileName);
     }
 
     public void setUrl(String url) {
         this.url = url;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public String getDirectoryPath() {
-        return directoryPath;
     }
 
     public void setDirectoryPath(String directoryPath) {

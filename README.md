@@ -41,7 +41,7 @@ http://example.com/image.jpg
 
 Speed limit:
 ```
-dimension - byte/second, suffixes 'k', 'm' can be used (uppercase also)
+dimension - byte/second, suffixes 'k', 'm' can be used instead (uppercase also)
 k - kilobyte
 m - megabyte
 ```

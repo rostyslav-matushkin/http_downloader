@@ -52,4 +52,4 @@ k=1024 - downloading speed will be 1024 kilobyte per second
 m=5 - downloading speed will be 5120 kilobyte or 5 megabyte per second
 ```
 
-Original technical task: [Console-downloader](https://github.com/Ecwid/new-job/blob/master/Console-downloader.md)
+Original technical task (russian): [Console-downloader](https://github.com/Ecwid/new-job/blob/master/Console-downloader.md)

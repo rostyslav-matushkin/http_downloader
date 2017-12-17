@@ -72,8 +72,6 @@ public class FileUtil {
     private static String processReadLine(String readLine) {
         readLine = removeUtf8Bom(readLine);
         validateUrl(readLine);
-        String fileExtension = extractFileExtension(readLine);
-        validateFileExtension(fileExtension);
 
         if (readLine.matches(URL_AND_FILE_NAME_REGEX)) {
             return removeExcessWhitespaces(readLine);
@@ -95,9 +93,5 @@ public class FileUtil {
             return matcher.group();
         }
         return null;
-    }
-
-    private static void validateFileExtension(String string) {
-
     }
 }

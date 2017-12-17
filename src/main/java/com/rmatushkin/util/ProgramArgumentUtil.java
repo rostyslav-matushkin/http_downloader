@@ -1,4 +1,4 @@
-package com.rmatushkin.service;
+package com.rmatushkin.util;
 
 import com.rmatushkin.exception.ProgramArgumentException;
 import org.apache.commons.cli.CommandLine;
@@ -11,9 +11,9 @@ import org.apache.commons.cli.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProgramArgumentService {
+public class ProgramArgumentUtil {
 
-    public Map<String, String> parse(String[] args, String[] parameters) {
+    public static Map<String, String> parse(String[] args, String[] parameters) {
         CommandLine commandLine = buildCommandLine(args, parameters);
 
         Map<String, String> parametersToValues = new HashMap<>();

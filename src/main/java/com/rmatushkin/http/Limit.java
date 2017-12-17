@@ -29,12 +29,12 @@ public class Limit {
         if (string == null) {
             return null;
         }
-        if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(KILOBYTE.getLetter())) {
-            int limitValue = parseInt(string.substring(0, string.length() - 1));
+        if (string.matches(LIMIT_REGEX) && string.toLowerCase().startsWith(KILOBYTE.getLetter())) {
+            int limitValue = parseInt(string.substring(2, string.length() - 1));
             return new Limit(limitValue, KILOBYTE);
         }
-        if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(MEGABYTE.getLetter())) {
-            int limitValue = parseInt(string.substring(0, string.length() - 1));
+        if (string.matches(LIMIT_REGEX) && string.toLowerCase().startsWith(MEGABYTE.getLetter())) {
+            int limitValue = parseInt(string.substring(2, string.length() - 1));
             return new Limit(limitValue, MEGABYTE);
         }
         throw new LimitParseException(format("String '%s' can't be parsed!", string));

@@ -6,14 +6,14 @@ A console utility for downloading files by *HTTP* protocol
 
 Required:
 ```
--f file path with links (details are below)
+-f file path with links (details below)
 -o destination folder path for downloaded files
 ```
 
 Optional:
 ```
--n threads quantity for simultaneously downloading (without this parameter will be used max available threads of the processor)
--l speed limit for one thread (details are below)
+-n threads quantity for simultaneous download (without this parameter will be used max available threads of the processor)
+-l speed limit for one thread (details below)
 ```
 
 Examples:

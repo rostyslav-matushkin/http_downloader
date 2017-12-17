@@ -48,8 +48,8 @@ m - megabyte
 
 Examples:
 ```
-k=1024 - downloading speed will be 1024 kilobyte per second
-m=5 - downloading speed will be 5120 kilobyte or 5 megabyte per second
+k=1024 - downloading speed will be 1024 kilobytes per second
+m=5 - downloading speed will be 5120 kilobytes or 5 megabytes per second
 ```
 
 Original technical task (russian): [Console-downloader](https://github.com/Ecwid/new-job/blob/master/Console-downloader.md)

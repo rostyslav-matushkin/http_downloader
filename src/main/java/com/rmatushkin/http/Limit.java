@@ -30,11 +30,11 @@ public class Limit {
             return null;
         }
         if (string.matches(LIMIT_REGEX) && string.toLowerCase().startsWith(KILOBYTE.getLetter())) {
-            int limitValue = parseInt(string.substring(2, string.length() - 1));
+            int limitValue = parseInt(string.substring(2, string.length()));
             return new Limit(limitValue, KILOBYTE);
         }
         if (string.matches(LIMIT_REGEX) && string.toLowerCase().startsWith(MEGABYTE.getLetter())) {
-            int limitValue = parseInt(string.substring(2, string.length() - 1));
+            int limitValue = parseInt(string.substring(2, string.length()));
             return new Limit(limitValue, MEGABYTE);
         }
         throw new LimitParseException(format("String '%s' can't be parsed!", string));

@@ -1,4 +1,4 @@
-package com.rmatushkin.service;
+package com.rmatushkin.util;
 
 import com.rmatushkin.entity.SingleFile;
 import com.rmatushkin.exception.FileException;
@@ -21,22 +21,19 @@ import static com.rmatushkin.util.StringUtil.removeUtf8Bom;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
 
-public class FileService {
+public class FileUtil {
 
-    public List<SingleFile> getSingleFiles(String filePath) {
+    public static List<SingleFile> newSingleFiles(String filePath) {
         File file = findFile(filePath);
-
         List<SingleFile> singleFiles = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             int count = 0;
             while (bufferedReader.ready()) {
                 String readLine = processReadLine(bufferedReader.readLine());
-
                 SingleFile singleFile = new SingleFile();
                 if (readLine.contains(" ")) {
                     String[] urlAndFileName = readLine.split(" ");
                     singleFile.setUrl(urlAndFileName[0]);
-                    //TODO: add validate for file extension
                     singleFile.setFileName(urlAndFileName[1]);
                 } else {
                     String fileExtension = extractFileExtension(readLine);
@@ -44,10 +41,8 @@ public class FileService {
                     String fileName = (++count) + fileExtension;
                     singleFile.setFileName(fileName);
                 }
-
                 singleFiles.add(singleFile);
             }
-
             return singleFiles;
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -55,35 +50,30 @@ public class FileService {
         }
     }
 
-    public File createDirectory(String path) {
+    public static void createDirectory(String path) {
         File directory = new File(path);
-        if (directory.exists()) {
-            return directory;
+        if (!directory.exists()) {
+            if (!directory.mkdir())
+                throw new FileException(format("Can't create the directory by path: %s", path));
         }
-        if (directory.mkdir()) {
-            return directory;
-        }
-        throw new FileException(format("Can't create the directory by path: %s", path));
     }
 
-    private File findFile(String path) {
+    private static File findFile(String path) {
         File file = new File(path);
         if (!file.exists()) {
-            throw new FileException(format("The path isn't exist: %s", path));
-        }
-        if (!file.canRead()) {
-            throw new FileException(format("No access to read the path: %s", path));
+            throw new FileException(format("Path '%s' isn't exist", path));
         }
         if (!file.isFile()) {
-            throw new FileException(format("It isn't the file path: %s", path));
+            throw new FileException(format("Path '%s' isn't a file", path));
         }
         return file;
     }
 
-    private String processReadLine(String readLine) {
+    private static String processReadLine(String readLine) {
         readLine = removeUtf8Bom(readLine);
-
         validateUrl(readLine);
+        String fileExtension = extractFileExtension(readLine);
+        validateFileExtension(fileExtension);
 
         if (readLine.matches(URL_AND_FILE_NAME_REGEX)) {
             return removeExcessWhitespaces(readLine);
@@ -92,18 +82,22 @@ public class FileService {
         }
     }
 
-    private void validateUrl(String string) {
+    private static void validateUrl(String string) {
         if (!string.matches(URL_REGEX)) {
-            throw new FileException(format("The line %s doesn't match by regex %s", string, URL_REGEX));
+            throw new FileException(format("Line '%s' isn't URL", string));
         }
     }
 
-    private String extractFileExtension(String string) {
+    private static String extractFileExtension(String string) {
         Pattern pattern = compile(FILE_EXTENSION);
         Matcher matcher = pattern.matcher(string);
         if (matcher.find()) {
             return matcher.group();
         }
         return null;
+    }
+
+    private static void validateFileExtension(String string) {
+
     }
 }

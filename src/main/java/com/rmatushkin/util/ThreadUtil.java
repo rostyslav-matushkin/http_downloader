@@ -7,7 +7,7 @@ import static java.util.concurrent.Executors.newWorkStealingPool;
 
 public class ThreadUtil {
 
-    public static ExecutorService createExecutorService(int threadsQuantity) {
+    public static ExecutorService newExecutorService(int threadsQuantity) {
         if (threadsQuantity == 0) {
             return newWorkStealingPool();
         } else {

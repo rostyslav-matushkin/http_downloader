@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-import static com.rmatushkin.util.ThreadUtil.createExecutorService;
+import static com.rmatushkin.util.ThreadUtil.newExecutorService;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
@@ -22,26 +22,17 @@ public class HttpClient {
     private int threadsQuantity;
     private Limit limit;
 
-    public HttpClient() {
-    }
-
-    public HttpClient(int threadsQuantity) {
-        validateThreadsQuantity(threadsQuantity);
+    private HttpClient(int threadsQuantity, Limit limit) {
         this.threadsQuantity = threadsQuantity;
+        this.limit = limit;
     }
 
     public void download(List<SingleFile> singleFiles) {
         List<Callable<Void>> tasks = new ArrayList<>();
-
         for (SingleFile singleFile : singleFiles) {
             tasks.add(createTask(singleFile));
         }
-
         runTasks(tasks);
-    }
-
-    public void setLimit(Limit limit) {
-        this.limit = limit;
     }
 
     private Callable<Void> createTask(SingleFile singleFile) {
@@ -74,18 +65,19 @@ public class HttpClient {
 
     private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
         int bytesPerSecond = limit.getUnit().getBytes() * limit.getValue();
+        int secondInMillis = 1000;
         byte[] buffer = new byte[BYTES_BUFFER_SIZE];
-        int bytesCounter = 0;
-        long checkTime = currentTimeMillis() + 1000;
-        int bytesRead;
+        int bytesCount = 0;
+        long checkTime = currentTimeMillis() + secondInMillis;
+        int readBytes;
         while (true) {
-            bytesRead = inputStream.read(buffer);
-            if (bytesRead == -1) {
+            readBytes = inputStream.read(buffer);
+            if (readBytes == -1) {
                 break;
             }
-            outputStream.write(buffer, 0, bytesRead);
-            bytesCounter += bytesRead;
-            if (bytesCounter < bytesPerSecond) {
+            outputStream.write(buffer, 0, readBytes);
+            bytesCount += readBytes;
+            if (bytesCount < bytesPerSecond) {
                 continue;
             }
             try {
@@ -97,13 +89,13 @@ public class HttpClient {
                 System.err.println(e.getMessage());
                 throw new HttpClientException(e);
             }
-            bytesCounter = 0;
-            checkTime = currentTimeMillis() + 1000;
+            bytesCount = 0;
+            checkTime = currentTimeMillis() + secondInMillis;
         }
     }
 
     private <T> void runTasks(List<Callable<T>> tasks) {
-        ExecutorService executorService = createExecutorService(threadsQuantity);
+        ExecutorService executorService = newExecutorService(threadsQuantity);
         try {
             System.out.println("In progress...");
             executorService.invokeAll(tasks);
@@ -115,9 +107,30 @@ public class HttpClient {
         System.out.println("Done!");
     }
 
-    private void validateThreadsQuantity(int threadsQuantity) {
-        if (threadsQuantity <= 0) {
-            throw new HttpClientException("Threads quantity can't be less or equal ZERO!");
+    public static class HttpClientBuilder {
+        private int threadsQuantity;
+        private Limit limit;
+
+        public HttpClient build() {
+            return new HttpClient(threadsQuantity, limit);
+        }
+
+        public HttpClientBuilder setThreadsQuantity(int threadsQuantity) {
+            validateThreadsQuantity(threadsQuantity);
+            this.threadsQuantity = threadsQuantity;
+            return this;
+
+        }
+
+        public HttpClientBuilder setLimit(Limit limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        private void validateThreadsQuantity(int threadsQuantity) {
+            if (threadsQuantity < 0) {
+                throw new HttpClientException("Threads quantity can't be less zero!");
+            }
         }
     }
 }

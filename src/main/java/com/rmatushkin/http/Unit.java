@@ -1,4 +1,4 @@
-package com.rmatushkin.enums;
+package com.rmatushkin.http;
 
 public enum Unit {
     KILOBYTE(1024, "k"),

@@ -1,11 +1,10 @@
 package com.rmatushkin.http;
 
-import com.rmatushkin.enums.Unit;
 import com.rmatushkin.exception.LimitParseException;
 
 import static com.rmatushkin.constraint.RegexPattern.LIMIT_REGEX;
-import static com.rmatushkin.enums.Unit.KILOBYTE;
-import static com.rmatushkin.enums.Unit.MEGABYTE;
+import static com.rmatushkin.http.Unit.KILOBYTE;
+import static com.rmatushkin.http.Unit.MEGABYTE;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
@@ -27,6 +26,9 @@ public class Limit {
     }
 
     public static Limit parseLimit(String string) {
+        if (string == null) {
+            return null;
+        }
         if (string.matches(LIMIT_REGEX) && string.toLowerCase().endsWith(KILOBYTE.getLetter())) {
             int limitValue = parseInt(string.substring(0, string.length() - 1));
             return new Limit(limitValue, KILOBYTE);

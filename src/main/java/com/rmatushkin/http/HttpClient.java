@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.rmatushkin.util.ThreadUtil.newExecutorService;
 import static java.lang.String.format;
@@ -19,6 +20,9 @@ import static java.lang.Thread.sleep;
 
 public class HttpClient {
     private static final int BYTES_BUFFER_SIZE = 1024;
+    private static final Object LOCK = new Object();
+    private static final AtomicInteger BYTES_COUNT = new AtomicInteger();
+    private static volatile long checkTime = currentTimeMillis() + 1000;
     private int threadsQuantity;
     private Limit limit;
 
@@ -65,32 +69,30 @@ public class HttpClient {
 
     private void readWriteWithLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
         int bytesPerSecond = limit.getUnit().getBytes() * limit.getValue();
-        int secondInMillis = 1000;
         byte[] buffer = new byte[BYTES_BUFFER_SIZE];
-        int bytesCount = 0;
-        long checkTime = currentTimeMillis() + secondInMillis;
         int readBytes;
         while (true) {
-            readBytes = inputStream.read(buffer);
-            if (readBytes == -1) {
-                break;
-            }
-            outputStream.write(buffer, 0, readBytes);
-            bytesCount += readBytes;
-            if (bytesCount < bytesPerSecond) {
-                continue;
-            }
-            try {
-                long sleepTime = checkTime - currentTimeMillis();
-                if (sleepTime > 0) {
-                    sleep(sleepTime);
+            synchronized (LOCK) {
+                readBytes = inputStream.read(buffer);
+                if (readBytes == -1) {
+                    break;
                 }
-            } catch (InterruptedException e) {
-                System.err.println(e.getMessage());
-                throw new HttpClientException(e);
+                outputStream.write(buffer, 0, readBytes);
+                if (BYTES_COUNT.addAndGet(readBytes) < bytesPerSecond) {
+                    continue;
+                }
+                try {
+                    long sleepTime = checkTime - currentTimeMillis();
+                    if (sleepTime > 0) {
+                        sleep(sleepTime);
+                    }
+                } catch (InterruptedException e) {
+                    System.err.println(e.getMessage());
+                    throw new HttpClientException(e);
+                }
+                BYTES_COUNT.set(0);
+                checkTime = currentTimeMillis() + 1000;
             }
-            bytesCount = 0;
-            checkTime = currentTimeMillis() + secondInMillis;
         }
     }
 

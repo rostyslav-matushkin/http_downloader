@@ -9,6 +9,7 @@
     <version>0.0.1</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
         <maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
         <commons-cli.version>1.4</commons-cli.version>

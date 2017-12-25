@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.rmatushkin.util.ThreadUtil.newExecutorService;
 import static java.lang.String.format;
@@ -21,6 +22,7 @@ import static java.lang.Thread.sleep;
 public class HttpClient {
     private static final int BYTES_BUFFER_SIZE = 1024;
     private static final Object LOCK = new Object();
+    private static final AtomicLong TOTAL_BYTES = new AtomicLong();
     private static final AtomicInteger BYTES_COUNT = new AtomicInteger();
     private static volatile long checkTime = currentTimeMillis() + 1000;
     private int threadsQuantity;
@@ -37,6 +39,8 @@ public class HttpClient {
             tasks.add(createTask(singleFile));
         }
         runTasks(tasks);
+
+        System.out.println(format("Downloaded %s bytes", TOTAL_BYTES.get()));
     }
 
     private Callable<Void> createTask(SingleFile singleFile) {
@@ -61,9 +65,10 @@ public class HttpClient {
 
     private void readWriteWithoutLimit(InputStream inputStream, OutputStream outputStream) throws IOException {
         byte[] buffer = new byte[BYTES_BUFFER_SIZE];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, bytesRead);
+        int readBytes;
+        while ((readBytes = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, readBytes);
+            TOTAL_BYTES.addAndGet(readBytes);
         }
     }
 

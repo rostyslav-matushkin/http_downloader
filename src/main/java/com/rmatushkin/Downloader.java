@@ -12,7 +12,10 @@ import java.util.Map;
 import static com.rmatushkin.http.Limit.parseLimit;
 import static com.rmatushkin.util.FileUtil.createDirectory;
 import static com.rmatushkin.util.FileUtil.newSingleFiles;
+import static com.rmatushkin.util.TimeUtil.formatMilliseconds;
 import static java.lang.Integer.parseInt;
+import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 
 public class Downloader {
     private static final String[] PARAMETERS = {"n", "l", "f", "o"};
@@ -24,6 +27,8 @@ public class Downloader {
     }
 
     public void start() {
+        long startTime = currentTimeMillis();
+
         int threadsQuantity = 0;
         String threadsQuantityValue = parametersToValues.get(PARAMETERS[0]);
         if (threadsQuantityValue != null) {
@@ -37,6 +42,10 @@ public class Downloader {
                 .build();
 
         httpClient.download(singleFiles);
+
+        long finishTime = currentTimeMillis();
+
+        System.out.println(format("Spent time: %s", formatMilliseconds((finishTime - startTime))));
     }
 
     private void init(String[] args) {
